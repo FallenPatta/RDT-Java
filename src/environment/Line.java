@@ -12,12 +12,18 @@ public class Line implements Obstacle {
 	private double m;
 	private double n;
 	
-	public Line(Vector2D start, Vector2D end){
+	public Line(Vector2D start, Vector2D end) throws IllegalArgumentException{
+		if(start.equals(end))
+			throw new IllegalArgumentException("Start- and Endpoint of a Line cannot be identical");
 		this.a = start;
 		this.b = end;
 		this.dir = start.vdiff(end);
-		this.m = dir.getY()/dir.getX();
-		this.n = a.getY()-m*a.getX();
+		this.m = Math.abs(dir.getX()) < ConstantsHelper.epsilon
+				?(dir.getY()>0
+						?Double.POSITIVE_INFINITY
+						:Double.NEGATIVE_INFINITY)
+				:dir.getY()/dir.getX();
+		this.n = Double.isInfinite(m)?0:a.getY()-m*a.getX();
 		this.length = dir.length();
 	}
 	
@@ -46,10 +52,12 @@ public class Line implements Obstacle {
 	public boolean blocks(Line l) {
 		Vector2D inter = intersect(l);
 		if(inter != null){
-			Vector2D d1 = a.vdiff(inter);
-			Vector2D d2 = l.a.vdiff(inter);
-			if(((dir.getX() >= 0) == (d1.getX() >= 0)) && ((l.dir.getX() >= 0) == (d2.getX() >= 0))){
-				return true;
+			if((dir.getX() >= 0) == (a.vdiff(inter).getX() >= 0) 
+					&& (dir.mult(-1).getX() >= 0) == (b.vdiff(inter).getX() >= 0)){
+				if((l.dir.getX() >= 0) == (l.a.vdiff(inter).getX() >= 0) 
+						&& (l.dir.mult(-1).getX() >= 0) == (l.b.vdiff(inter).getX() >= 0)){
+					return true;
+				}
 			}
 		}
 		return false;
@@ -59,10 +67,12 @@ public class Line implements Obstacle {
 	public Vector2D intersection(Line l) {
 		Vector2D inter = intersect(l);
 		if(inter != null){
-			Vector2D d1 = a.vdiff(inter);
-			Vector2D d2 = l.a.vdiff(inter);
-			if(((dir.getX() >= 0) == (d1.getX() >= 0)) && ((l.dir.getX() >= 0) == (d2.getX() >= 0))){
-				return inter;
+			if((dir.getX() >= 0) == (a.vdiff(inter).getX() >= 0) 
+					&& (dir.mult(-1).getX() >= 0) == (b.vdiff(inter).getX() >= 0)){
+				if((l.dir.getX() >= 0) == (l.a.vdiff(inter).getX() >= 0) 
+						&& (l.dir.mult(-1).getX() >= 0) == (l.b.vdiff(inter).getX() >= 0)){
+					return inter;
+				}
 			}
 		}	
 		return null;

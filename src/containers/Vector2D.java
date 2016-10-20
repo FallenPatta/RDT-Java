@@ -1,5 +1,7 @@
 package containers;
 
+import environment.ConstantsHelper;
+
 public class Vector2D {
 	private double x;
 	private double y;
@@ -42,6 +44,13 @@ public class Vector2D {
 		return r;
 	}
 	
+	/**
+	 * Bildet die Differenz zwischen dem Vektor und einem anderen Vektor. <br>
+	 * Dabei fungiert das aufrufende Objekt als Fuß und das Argument als Spitze.
+	 * 
+	 * @param other Spitze
+	 * @return Vector spitze - Vector Fuß
+	 */
 	public Vector2D vdiff(Vector2D other){
 		return new Vector2D(other.x-x, other.y-y);
 	}
@@ -61,6 +70,14 @@ public class Vector2D {
 	@Override
 	public String toString(){
 		return "("+x+", "+y+")";
+	}
+	
+	@Override
+	public boolean equals(Object other){
+		if(!other.getClass().equals(Vector2D.class))
+			return false;
+		Vector2D o = (Vector2D) other;
+		return (Math.abs(x - o.x) < ConstantsHelper.epsilon & Math.abs(y - o.y) < ConstantsHelper.epsilon);
 	}
 
 }

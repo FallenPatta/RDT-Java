@@ -32,7 +32,7 @@ public class Environment {
 			}
 		}
 		
-		return minV==null? null : minV.diff(l.getDir().div(10));
+		return minV==null? null : minV;
 	}
 	
 	public boolean blocks(Line l){

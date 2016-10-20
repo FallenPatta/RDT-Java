@@ -33,8 +33,8 @@ public class Planner {
 	static double force = 5.0;
 	static int imsize = 400;
 	static int sc = 1;
-	static int ranPts = 80;
-	static int inPts = 2;
+	static int ranPts = 40;
+	static int inPts = 1;
 	
 	public Vector2D dVec(TreeNode a, TreeNode b){
 		return new Vector2D(a.getPoint().getX() - b.getPoint().getX(),a.getPoint().getY() - b.getPoint().getY());
@@ -131,25 +131,25 @@ public class Planner {
 		DoubleImg pot = new DoubleImg(sc * imsize, imsize);
 		Distance d = new Cartesian();
 		Environment env = new Environment();
-		Vector2D a = new Vector2D(100,100);
-		Vector2D b = new Vector2D(300,101);
+		Vector2D a = new Vector2D(0,100);
+		Vector2D b = new Vector2D(sc*imsize,100);
 		Line l = new Line(a, b);
 		env.add(l);
 		
-		Vector2D a2 = new Vector2D(230,0);
-		Vector2D b2 = new Vector2D(220,100);
+		Vector2D a2 = new Vector2D(300,0);
+		Vector2D b2 = new Vector2D(300,imsize);
 		Line l2 = new Line(a2, b2);
 		env.add(l2);
 		
-		Vector2D a3 = new Vector2D(100,350);
-		Vector2D b3 = new Vector2D(300,351);
-		Line l3 = new Line(a3, b3);
-		env.add(l3);
+//		Vector2D a3 = new Vector2D(100,350);
+//		Vector2D b3 = new Vector2D(300,351);
+//		Line l3 = new Line(a3, b3);
+//		env.add(l3);
 		
 		System.out.println(env);
 		
 		try{
-			Vector2D p = new Vector2D(200,200);
+			Vector2D p = new Vector2D(sc*imsize/2,imsize/2);
 			TreeNode start = new TreeNode(p);
 			points.add(p);
 			tree.add(start);
@@ -186,7 +186,7 @@ public class Planner {
 		try {
 			draw(img,l.getStart(), l.getEnd(), 1000, 0x00FF00);
 			draw(img,l2.getStart(), l2.getEnd(), 1000, 0x00FF00);
-			draw(img,l3.getStart(), l3.getEnd(), 1000, 0x00FF00);
+//			draw(img,l3.getStart(), l3.getEnd(), 1000, 0x00FF00);
 			ImageIO.write(img, "png", new File("/home/david/Desktop/prim.png"));
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -196,16 +196,7 @@ public class Planner {
 		// SET
 		Random rand = new Random();
 		for (int i = 0; i < ranPts; i++) {
-//			double min = Double.MAX_VALUE;
 			Vector2D p = new Vector2D(rand.nextDouble()*sc*imsize, rand.nextDouble()*imsize);
-//			for (int x = 0; x < pot.getW(); x++) {
-//				for (int y = 0; y < pot.getH(); y++) {
-//					if (pot.get(x, y) < min) {
-//						min = pot.get(x, y);
-//						p = new Vector2D(x, y);
-//					}
-//				}
-//			}
 			
 			for (int x = 0; x < pot.getW(); x++) {
 				for (int y = 0; y < pot.getH(); y++) {
@@ -225,28 +216,49 @@ public class Planner {
 			TreeNode source = null;
 			TreeNode bSource = null;
 			for (TreeNode n : tree) {
-				if ((tmp = d.dist(n, p)) < dMin) {
+				boolean non = false;
+				if ((tmp = d.dist(n, p)) < dMin && env.blocks(new Line(n.getPoint(), newNode.getPoint()))) {
+					non=true;
+					System.out.println("BLOCKING");
 					dMin = tmp;
 					bSource = n;
 				}
 				if((rtmp = d.dist(n, p)) < rdMin && !env.blocks(new Line(n.getPoint(), newNode.getPoint()))){
+					if(non) System.out.println("CONFLICT");
 					rdMin = rtmp;
 					source = n;
+					System.out.println("NOTBLOCKING");
 				}
 			}
 			if (bSource == null) {
 				tree.add(newNode);
 			} else {
-				if(source == null) source = bSource;
+				if(source == null){
+					System.out.println("No Free Path");
+					source = bSource;
+					Line vert = new Line(source.getPoint(), newNode.getPoint());
+					Vector2D tmpPoint = env.collision(vert);
+					if(tmpPoint != null){
+						//img.setRGB((int)tmpPoint.getX(), (int)tmpPoint.getY(), 0xff00ff);
+						for(int x = -3; x<=3; x++){
+							for(int y = -3; y<=3; y++){
+								img.setRGB((int)Math.min(sc*imsize, Math.max(0, tmpPoint.getX()+x))
+										, (int)Math.min(imsize, Math.max(0, tmpPoint.getY()+y)), 0xff00ff);
+							}
+						}
+					}
+					continue;
+				}
 				Line vert = new Line(source.getPoint(), newNode.getPoint());
-				Vector2D tmpPoint = env.collision(vert);//l.intersection(new Line(source.getPoint(), newNode.getPoint()));
+				Vector2D tmpPoint = env.collision(vert);
 				if(tmpPoint != null){
 					newNode = new TreeNode(tmpPoint);
 					p = newNode.getPoint();
 				}
-//				double dist = d.dist(source, newNode.getPoint());
+				
 				Vertex v = new Vertex(source, newNode);
-				List<TreeNode> list = v.subPoints(2, d);
+				List<TreeNode> list = v.subPoints(5, d);
+				list.add(newNode);
 				for(TreeNode n : list){
 					points.add(n.getPoint());
 					for (int x = 0; x < pot.getW(); x++) {
@@ -283,13 +295,14 @@ public class Planner {
 			for (int y = 0; y < pot.getH(); y++) {
 				if (pot.get(x, y) > max) {
 					max = pot.get(x, y);
-					System.out.println(max);
+					//System.out.println(max);
 				}
 			}
 		}
 		System.out.println(max);
 		scale = 255.0 / max;
 		val = 0;
+		//TODO: entkommentieren
 		for (int x = 0; x < pot.getW(); x++) {
 			for (int y = 0; y < pot.getH(); y++) {
 				val = (int) (pot.get(x, y) * scale);
@@ -306,7 +319,7 @@ public class Planner {
 		//img = new BufferedImage(img.getWidth(), img.getHeight(), BufferedImage.TYPE_3BYTE_BGR);
 		draw(img,l.getStart(), l.getEnd(), 1000, 0x00FF00);
 		draw(img,l2.getStart(), l2.getEnd(), 1000, 0x00FF00);
-		draw(img,l3.getStart(), l3.getEnd(), 1000, 0x00FF00);
+//		draw(img,l3.getStart(), l3.getEnd(), 1000, 0x00FF00);
 		drawTree2(img, tree.get(0), encoder);
 //		for (int i = 1; i < tree.size(); i++) {
 //			TreeNode n = tree.get(i);
