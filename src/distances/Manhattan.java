@@ -19,4 +19,9 @@ public class Manhattan implements Distance {
 		return (Math.abs(x - b.getX()) + Math.abs(y - b.getY()));
 	}
 
+	@Override
+	public double dist(Vector2D a, Vector2D b) {
+		return (Math.abs(a.getX() - b.getX()) + Math.abs(a.getY() - b.getY()));
+	}
+
 }

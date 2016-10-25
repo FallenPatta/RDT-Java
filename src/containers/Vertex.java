@@ -25,7 +25,7 @@ public class Vertex {
 	public List<TreeNode> subPoints(int num, Distance d){
 		List<TreeNode> list = new ArrayList<TreeNode>();
 		Vector2D splitter = direction.div(num+1);
-		
+		if(num > 0){
 		for(int i = 0; i < num; i++){
 			list.add(new TreeNode(start.getPoint().sum(splitter.mult(i+1))));
 			list.get(i).setDistance(d.dist(start, list.get(i).getPoint()));
@@ -36,6 +36,10 @@ public class Vertex {
 		}
 		
 		list.get(num-1).addChild(end);
+		}
+		if(list.size() == 0){
+			start.addChild(end);
+		}
 		list.add(end);
 		end.setDistance(d.dist(start, end.getPoint()));
 		
