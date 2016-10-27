@@ -18,7 +18,7 @@ public class OpenPoly implements Obstacle {
 		for(Vector2D p : points) obs.add(
 				new Circle(p.add(new Vector2D(sign(rnd.nextInt(2)*2-1)*2*ConstantsHelper.epsilon
 						, sign(rnd.nextInt(2)*2-1)*2*ConstantsHelper.epsilon))
-				, 0.1));
+				, 0.5));
 		for(int i = 1; i<points.size(); i++){
 			try{
 				Line l = new Line(points.get(i-1), points.get(i));

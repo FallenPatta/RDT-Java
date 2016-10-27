@@ -42,6 +42,12 @@ public class TreeNode {
 		c.setParent(this);
 		this.children.add(c);
 	}
+	
+	public void removeChild(TreeNode c){
+		if(this.children.contains(c)){
+			this.children.remove(c);
+		}
+	}
 
 	public ArrayList<TreeNode> getChildren() {
 		return this.children;

@@ -22,7 +22,7 @@ public class Circle implements Obstacle {
 		this.radius = rad;
 		this.direction = true;
 		this.zero = 0;
-		this.full = Math.PI * 2.1;
+		this.full = 0;
 		this.direction = true;
 		output = false;
 	}
@@ -77,13 +77,14 @@ public class Circle implements Obstacle {
 	}
 
 	public Vector2D validate(Vector2D inter) {
+		if(full == 0 && zero == 0) return inter;
 		double ang = Math.atan2(inter.getY(), inter.getX());
 		if (ang < 0)
 			ang += 2 * Math.PI;
 
-		if (direction && (ang > zero && ang < full)) {
+		if (direction && (ang >= zero && ang <= full)) {
 			return inter;
-		} else if (!direction && (ang < zero | ang > full)) {
+		} else if (!direction && (ang <= zero | ang >= full)) {
 			return inter;
 		}
 		return null;
@@ -123,12 +124,19 @@ public class Circle implements Obstacle {
 			List<Vector2D> intersections = intersect(p, d);
 			for (Vector2D inter : intersections) {
 				inter.add(center);
-				if ((p.getDir().getX() >= 0) == (p.getStart().vdiff(inter).getX() > 0)
-						&& (p.getDir().mult(-1).getX() >= 0) == (p.getEnd().vdiff(inter).getX() > 0)
-						|| Math.abs(p.getDir().getX()) <= ConstantsHelper.epsilon) {
-					if ((p.getDir().getY() >= 0) == (p.getStart().vdiff(inter).getY() > 0)
-							&& (p.getDir().mult(-1).getY() >= 0) == (p.getEnd().vdiff(inter).getY() > 0)
-							|| Math.abs(p.getDir().getY()) <= ConstantsHelper.epsilon) {
+				double xm = p.getDir().getX() != 0 ? p.getStart().vdiff(inter).getX()/p.getDir().getX() : 0.5;
+				double ym = p.getDir().getY() != 0 ? p.getStart().vdiff(inter).getY()/p.getDir().getY() : 0.5;
+//				if ((p.getDir().getX() >= 0) == (p.getStart().vdiff(inter).getX() > 0)
+//						&& (p.getDir().mult(-1).getX() >= 0) == (p.getEnd().vdiff(inter).getX() > 0)
+//						|| Math.abs(p.getDir().getX()) <= ConstantsHelper.epsilon) {
+//					if ((p.getDir().getY() >= 0) == (p.getStart().vdiff(inter).getY() > 0)
+//							&& (p.getDir().mult(-1).getY() >= 0) == (p.getEnd().vdiff(inter).getY() > 0)
+//							|| Math.abs(p.getDir().getY()) <= ConstantsHelper.epsilon) {
+//						return true;
+//					}
+//				}
+				if (xm >= 0 && xm <= 1) {
+					if (ym >= 0 && ym <= 1) {
 						return true;
 					}
 				}
@@ -148,12 +156,19 @@ public class Circle implements Obstacle {
 		List<Vector2D> trueinter = new ArrayList<Vector2D>();
 		for (Vector2D inter : intersections) {
 			inter.add(center);
-			if ((p.getDir().getX() >= 0) == (p.getStart().vdiff(inter).getX() > 0)
-					&& (p.getDir().mult(-1).getX() >= 0) == (p.getEnd().vdiff(inter).getX() > 0)
-					|| Math.abs(p.getDir().getX()) <= ConstantsHelper.epsilon) {
-				if ((p.getDir().getY() >= 0) == (p.getStart().vdiff(inter).getY() > 0)
-						&& (p.getDir().mult(-1).getY() >= 0) == (p.getEnd().vdiff(inter).getY() > 0)
-						|| Math.abs(p.getDir().getY()) <= ConstantsHelper.epsilon) {
+			double xm = p.getDir().getX() != 0 ? p.getStart().vdiff(inter).getX()/p.getDir().getX() : 1;
+			double ym = p.getDir().getY() != 0 ? p.getStart().vdiff(inter).getY()/p.getDir().getY() : 1;
+//			if ((p.getDir().getX() >= 0) == (p.getStart().vdiff(inter).getX() > 0)
+//					&& (p.getDir().mult(-1).getX() >= 0) == (p.getEnd().vdiff(inter).getX() > 0)
+//					|| Math.abs(p.getDir().getX()) <= ConstantsHelper.epsilon) {
+//				if ((p.getDir().getY() >= 0) == (p.getStart().vdiff(inter).getY() > 0)
+//						&& (p.getDir().mult(-1).getY() >= 0) == (p.getEnd().vdiff(inter).getY() > 0)
+//						|| Math.abs(p.getDir().getY()) <= ConstantsHelper.epsilon) {
+//					trueinter.add(inter);
+//				}
+//			}
+			if (xm >= 0 && xm <= 1) {
+				if (ym >= 0 && ym <= 1) {
 					trueinter.add(inter);
 				}
 			}
@@ -170,8 +185,9 @@ public class Circle implements Obstacle {
 				minV = inter;
 			}
 		}
-//		if (output && minV == null)
-//			System.out.println("minV NULL");
+		
+		if (minV == null && trueinter.size() != 0)
+			System.out.println("minV NULL");
 		return minV;
 	}
 

@@ -1,21 +1,15 @@
 package main;
 
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.text.spi.NumberFormatProvider;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
 import javax.imageio.ImageIO;
-
-import com.gif4j.light.GifEncoder;
-import com.gif4j.light.GifFrame;
-import com.gif4j.light.GifImage;
 
 import containers.DoubleImg;
 import containers.TreeNode;
@@ -37,12 +31,14 @@ public class Planner {
 	static ArrayList<Vector2D> points = new ArrayList<Vector2D>();
 	static ArrayList<TreeNode> tree = new ArrayList<TreeNode>();
 	static double force = 5.0;
-	static int imsize = 590;
+	static int imsize = 600;
 	static int sc = 1;
 	static int ranPts = 5000;
 	static int inPts = 1;
 	static int targetResolution = 1;
 	static int srcResolution = 3;
+	static int margin = 4;
+	static boolean alarmed = false;
 	static BufferedImage img = new BufferedImage(sc * imsize, imsize, BufferedImage.TYPE_INT_RGB);
 	
 	public Vector2D dVec(TreeNode a, TreeNode b) {
@@ -97,7 +93,7 @@ public class Planner {
 		b.setRGB((int) (Math.min(imsize * sc - 1, Math.max((double) lineL.getX() + scale * dx, 0))),
 				(int) (Math.min(imsize - 1, Math.max((double) lineL.getY() + scale * dy, 0))), col);
 	}
-
+	
 	public static void drawPoint(BufferedImage b, Vector2D p, int size, int col) {
 		for (int x = -size; x < size; x++) {
 			for (int y = -size; y < size; y++) {
@@ -114,7 +110,7 @@ public class Planner {
 		} else {
 			for (TreeNode n : root.getChildren()) {
 				draw(img, root.getPoint(), n.getPoint(), 0xFF0000);
-				enc.addFrame(img);
+				if(enc != null) enc.addFrame(img);
 				drawTree(img, n, enc);
 			}
 		}
@@ -160,6 +156,17 @@ public class Planner {
 				}
 			}
 		}
+	}
+	
+	public static boolean isValid(Environment env, Vector2D p, Random rand){
+		for(double ang = 0; ang < 2*Math.PI; ang+= Math.PI/10){
+			double x = Math.cos(ang) * margin/2;
+			double y = Math.sin(ang) * margin/2;
+			if(env.blocks(new Line(p, new Vector2D(x, y).add(p)))){
+				return false;
+			}
+		}
+		return true;
 	}
 
 	public static void drawTriangles(BufferedImage b, Environment env, int col) {
@@ -237,42 +244,30 @@ public class Planner {
 
 		Random random = new Random();
 
-		// LINES
-		// Vector2D a = new Vector2D(100, 350);
-		// Vector2D b = new Vector2D(sc * imsize - 100, 350);
-		// Line l = new Line(a, b);
-		// env.add(l);
-
-		// Vector2D a2 = new Vector2D(300, 100);
-		// Vector2D b2 = new Vector2D(300, imsize - 100);
-		// Line l2 = new Line(a2, b2);
-		// env.add(l2);
-
-		// Vector2D a3 = new Vector2D(sc * imsize, 0);
-		// Vector2D b3 = new Vector2D(0, imsize);
-		// Line l3 = new Line(a3, b3);
-		// env.add(l3);
-
-		// Vector2D a4 = new Vector2D(0, 375);
-		// Vector2D b4 = new Vector2D(sc * imsize / 4 - 10, 375);
-		// Line l4 = new Line(a4, b4);
-		// env.add(l4);
-		//
+		//Obstacles
+		if(true)
+		{
 		Vector2D s1 = new Vector2D(150, 250);
 		Vector2D s2 = new Vector2D(150, 150);
 		Vector2D s3 = new Vector2D(250, 150);
-		Vector2D s4 = new Vector2D(250, 250);
+		Vector2D s4 = new Vector2D(250, 300);
+		Vector2D s5 = new Vector2D(150, 300);
+		Vector2D s6 = new Vector2D(150, 270);
+		Vector2D s7 = new Vector2D(0, 0);
 
 		List<Vector2D> pList = new ArrayList<Vector2D>();
 		pList.add(s1);
 		pList.add(s2);
 		pList.add(s3);
 		pList.add(s4);
+		pList.add(s5);
+		pList.add(s6);
+		pList.add(s7);
 		OpenPoly starter = new OpenPoly(pList);
 		env.add(starter);
 
-		Circle c0 = new Circle(new Vector2D(sc * imsize / 2, imsize / 2), imsize / 2 - 10);
-		env.add(c0);
+//		Circle c0 = new Circle(new Vector2D(sc * imsize / 2, imsize / 2), imsize / 2 - 10);
+//		env.add(c0);
 
 		Circle c1 = new Circle(new Vector2D(sc * imsize / 2 - 120, imsize / 2 + 50), 21.0001);
 		env.add(c1);
@@ -285,7 +280,7 @@ public class Planner {
 		env.add(c3);
 
 		int pro = 0;
-		for (int i = 0; i < 9; i++) {
+		for (int i = 0; i < 11; i++) {
 			pro += i * 2 + 6;
 			Circle cir = new Circle(new Vector2D(sc * imsize / 2 + imsize / 4, imsize / 2 - 100 + pro), 1 + i);
 			env.add(cir);
@@ -309,32 +304,16 @@ public class Planner {
 		vecs.add(vecs.get(0));
 		OpenPoly poly = new OpenPoly(vecs);
 		env.add(poly);
-
-		// vecs = new ArrayList<Vector2D>();
-		// vecs.add(cen);
-		// for(int i = 0; i<12; i++){
-		// double x = random.nextDouble()*sc*imsize;
-		// double y = random.nextDouble()*imsize;
-		// vecs.add(new Vector2D(x,y));
-		// }
-		// vecs.add(cen);
-		// OpenPoly poly2 = new OpenPoly(vecs);
-		// env.add(poly2);
-
-		// Line l8 = new Line(A, B);
-		// env.add(l8);
-		// Line l9 = new Line(B, C);
-		// env.add(l9);
-		// Line l10 = new Line(A, C);
-		// env.add(l10);
-		//
-		// Circle c4 = new Circle(A, 0.1);
-		// env.add(c4);
-		// Circle c5 = new Circle(B, 0.1);
-		// env.add(c5);
-		// Circle c6 = new Circle(C, 0.1);
-		// env.add(c6);
-
+		}
+		else if(true){
+			for(int x = 0; x<20; x++){
+				for(int y= 0; y<20; y++){
+					Circle cir = new Circle(new Vector2D(70+x*25, 70+y*25), 10);
+					env.add(cir);
+				}
+			}
+		}
+		
 		System.out.println(env);
 
 		// TODO: Collisionserkennung - Test
@@ -509,15 +488,16 @@ public class Planner {
 //		System.exit(0);
 		img = new BufferedImage(sc * imsize, imsize, BufferedImage.TYPE_INT_RGB);
 
+		//TODO: Dynamic Start
+		Vector2D ps = new Vector2D(200, 200);// new Vector2D(sc * imsize / 2,
+		// imsize / 2);
+		TreeNode start = new TreeNode(ps);
 		try {
-			Vector2D p = new Vector2D(200, 200);// new Vector2D(sc * imsize / 2,
-												// imsize / 2);
-			TreeNode start = new TreeNode(p);
-			points.add(p);
+			points.add(ps);
 			tree.add(start);
 			for (int x = 0; x < pot.getW(); x++) {
 				for (int y = 0; y < pot.getH(); y++) {
-					double f = force / d.dist(x, y, p);
+					double f = force / d.dist(x, y, ps);
 					if (f > 2 * force)
 						f = 2 * force;
 					pot.set(x, y, pot.get(x, y) + f);
@@ -560,21 +540,28 @@ public class Planner {
 		long startSet = System.currentTimeMillis();
 		Random rand = new Random();
 		List<TreeNode> ncNodes = new ArrayList<TreeNode>();
+		int numerateOutput = 0;
+		Vector2D goal = new Vector2D(sc*imsize-1, imsize-1);
+		TreeNode solution = null;
 		for (int i = 0; i < ranPts; i++) {
+			if(i%(ranPts/20)==0){
+				numerateOutput++;
+				System.out.println("-=- " +numerateOutput);
+			}
 			Vector2D p = new Vector2D(rand.nextDouble() * sc * imsize, rand.nextDouble() * imsize);
 
-			if (rand.nextInt(2) != 0) {
-				double min = Double.MAX_VALUE;
-				for (int x = 0; x < pot.getW(); x++) {
-					for (int y = 0; y < pot.getH(); y++) {
-						if (min > pot.get(x, y)) {
-							min = pot.get(x, y);
-							p = new Vector2D(Math.min(imsize * sc - 1, Math.max(0, (int) rand.nextDouble() * 20 + x)),
-									Math.min(imsize - 1, Math.max(0, (int) rand.nextDouble() * 20 + y)));
-						}
-					}
-				}
-			}
+//			if (rand.nextInt(2) != 0) {
+//				double min = Double.MAX_VALUE;
+//				for (int x = 0; x < pot.getW(); x++) {
+//					for (int y = 0; y < pot.getH(); y++) {
+//						if (min > pot.get(x, y)) {
+//							min = pot.get(x, y);
+//							p = new Vector2D(Math.min(imsize * sc - 1, Math.max(0, (int) rand.nextDouble() * 20 + x)),
+//									Math.min(imsize - 1, Math.max(0, (int) rand.nextDouble() * 20 + y)));
+//						}
+//					}
+//				}
+//			}
 
 			for (int x = 0; x < pot.getW(); x++) {
 				for (int y = 0; y < pot.getH(); y++) {
@@ -585,6 +572,19 @@ public class Planner {
 				}
 			}
 			points.add(p);
+			
+//			boolean breaks = false;
+//			for(double ang = 0; ang < 2*Math.PI; ang+= Math.PI/10){
+//				double x = Math.cos(ang) * margin;
+//				double y = Math.sin(ang) * margin;
+//				if(env.blocks(new Line(p.sum(new Vector2D(rand.nextDouble()/10, rand.nextDouble()/10)), new Vector2D(x, y).add(p)))){
+//					breaks = true;
+//					i--;
+//					break;
+//				}
+//			}
+			if(!isValid(env, p, rand))
+				continue;
 
 			double dMin = Double.MAX_VALUE;
 			double rdMin = Double.MAX_VALUE;
@@ -595,7 +595,7 @@ public class Planner {
 			TreeNode bSource = null;
 			for (TreeNode n : tree) {
 				try{
-					if ((tmp = d.dist(n.getPoint(), p)) < dMin && env.blocks(new Line(n.getPoint(), newNode.getPoint()))) {//
+					if ((tmp = d.dist(n, p)) < dMin && env.blocks(new Line(n.getPoint(), newNode.getPoint()))) {//
 						dMin = tmp;
 						bSource = n;
 						continue;
@@ -608,23 +608,37 @@ public class Planner {
 					
 				}
 			}
+			
 			if (bSource == null && source == null) {
 				tree.add(newNode);
 			} else {
 				if (source == null) {
-					// System.out.println("No Free Path");
 					source = bSource;
 					ncNodes.add(new TreeNode(p));
 				}
 				Line vert = new Line(source.getPoint(), newNode.getPoint());
-				Vector2D tmpPoint = env.collision(vert, 4);
+				Vector2D tmpPoint = env.collision(vert, margin);
 				if (tmpPoint != null) {
 					newNode = new TreeNode(tmpPoint);
 					p = newNode.getPoint();
+					if(d.dist(source, p) < 1)
+						continue;
 				}
 
 				Vertex v = new Vertex(source, newNode);
 				List<TreeNode> list = v.subPoints(4, d);
+				List<TreeNode> tmlist = new ArrayList<TreeNode>();
+				for(TreeNode tn : list){
+					if(isValid(env, tn.getPoint(), rand)){
+						tmlist.add(tn);
+					}else{
+						for(TreeNode c : tn.getChildren()){
+							tn.getParent().addChild(c);
+						}
+						tn.getParent().removeChild(tn);
+					}
+				}
+				list = tmlist;
 
 				List<TreeNode> rmNodes = new ArrayList<TreeNode>();
 				for (TreeNode n : ncNodes) {
@@ -661,21 +675,27 @@ public class Planner {
 					}
 				}
 				
-//				for(TreeNode o : tree){
-//					for(TreeNode n : list){
-//						try{
-//							Line checkNew = new Line(n.getPoint(), o.getPoint());
-//							if(!env.blocks(checkNew) && o.getDistance() > d.dist(n, o.getPoint())){
-//								o.setDistance(d.dist(n, o.getPoint()));
-//								n.addChild(o);
-//							}
-//						}catch(IllegalArgumentException e){
-//							
-//						}
-//					}
-//				}
 				tree.addAll(list);
-//				System.out.println(tree.size());
+//				boolean sol = false;
+				for(TreeNode n : list){
+					if(!env.blocks(new Line(n.getPoint(), goal))){
+						if(solution == null){
+							System.out.println("Path Found");
+							solution = new TreeNode(goal);
+							solution.setDistance(d.dist(n, goal));
+							n.addChild(solution);
+							tree.add(solution);
+						}else{
+							if(d.dist(n, goal)<solution.getDistance()){
+								solution.getParent().removeChild(solution);
+								solution.setDistance(d.dist(n, goal));
+								n.addChild(solution);
+							}
+						}
+//						sol = true;
+					}
+				}
+				//if(sol) break;
 			}
 		}
 		long endSet = System.currentTimeMillis();
@@ -734,23 +754,17 @@ public class Planner {
 		int num = 0;
 		for (TreeNode n : tree) {
 			num++;
-			if(num < 100 || num%sign==0){
-				//System.out.print("=");
-				if(encoder.delay != 10){
-					encoder.setDelay(10);
-				}
+			if(num%sign==0){
 				encoder.addFrame(img);
-				if(num >= 99){
-					encoder.setDelay(100);
-				}
 			}
 			if(num%numSign==0)
 				System.out.print(" " + num/numSign*20+"% ");
-			if (n.getParent() != null) {
-				draw(img, n.getParent().getPoint(), n.getPoint(), 0xFF0000);
-			} else {
-				drawPoint(img, n.getPoint(), 4, 0x00FF00);
-			}
+//			if (n.getParent() != null) {
+//				draw(img, n.getParent().getPoint(), n.getPoint(), 0xFF0000);
+//			} else {
+//				drawPoint(img, n.getPoint(), 4, 0x00FF00);
+//			}
+			img.setRGB((int)n.getPoint().getX(), (int)n.getPoint().getY(), 0xFF0000);
 //			if (n.getChildren().size() == 0 || n.getChildren().size() > 1) {
 //			}
 		}
@@ -758,6 +772,15 @@ public class Planner {
 		encoder.setDelay(1000);
 		encoder.addFrame(img);
 		System.out.println("DONE");
+		System.out.println(tree.get(0).getPoint());
+		
+		TreeNode drawNode = solution;
+		if(drawNode != null){
+			while(drawNode.getParent() != null){
+				draw(img, drawNode.getPoint(), drawNode.getParent().getPoint(), 0x00ff00);
+				drawNode = drawNode.getParent();
+			}
+		}
 
 		try {
 			ImageIO.write(img, "png", new File("/home/david/Desktop/ter.png"));

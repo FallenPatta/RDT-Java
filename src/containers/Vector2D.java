@@ -42,6 +42,11 @@ public class Vector2D {
 		return this;
 	}
 
+	/**
+	 * Ändert den Vektorwert NICHT
+	 * @param v
+	 * @return new Vector(x+v.x, y+v.y)
+	 */
 	public Vector2D sum(Vector2D v) {
 		Vector2D r = new Vector2D(x, y);
 		r.x += v.getX();

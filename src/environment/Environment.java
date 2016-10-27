@@ -43,6 +43,9 @@ public class Environment {
 			tmp = v.vdiff(l.getStart());
 			tmp = tmp.div(tmp.length());
 			tmp = tmp.mult(security);
+			if(tmp.length() > v.length()){
+				tmp = tmp.mult(v.length()/tmp.length());
+			}
 			v.add(tmp);
 			Vector2D check = v.vdiff(l.getStart());
 			if ((temp = distance.dist(0,0,check)) < min) {
