@@ -22,7 +22,7 @@ public class Environment {
 	 * @param l Line to check
 	 * @return First Collision Point with Environment, or null if there is no collision
 	 */
-	public Vector2D collision(Line l) {
+	public Vector2D collision(Line l, double security) {
 		List<Vector2D> collisions = new ArrayList<Vector2D>();
 
 		Vector2D tmp = null;
@@ -42,6 +42,7 @@ public class Environment {
 			}
 			tmp = v.vdiff(l.getStart());
 			tmp = tmp.div(tmp.length());
+			tmp = tmp.mult(security);
 			v.add(tmp);
 			Vector2D check = v.vdiff(l.getStart());
 			if ((temp = distance.dist(0,0,check)) < min) {

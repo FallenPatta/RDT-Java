@@ -31,6 +31,11 @@ public class Vector2D {
 		return Math.sqrt(this.x * this.x + this.y * this.y);
 	}
 
+	/**
+	 * Ändert den Vektorwert
+	 * @param v Vector2D
+	 * @return this
+	 */
 	public Vector2D add(Vector2D v) {
 		this.x += v.getX();
 		this.y += v.getY();
